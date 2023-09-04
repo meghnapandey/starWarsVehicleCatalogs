@@ -6,3 +6,14 @@ Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+# Repo insights
+This repo provides Search, Filter and Pagination for the given information of Car vehicles. The data is fetched from the Api of starWars and displayed.
+
+
+# Run the code
+npm run dev
+
+# Update node modules
+npm i
+
