@@ -1,22 +1,21 @@
-import { Pagination } from "@mui/material"
 import PropTypes from "prop-types" // Import PropTypes
+import {Pagination} from '@mui/material'
 
-function PaginationComponent({ totalPages, page, handlePagination }) {
+function PaginationComponent({postsPerPage, page, handlePagination}) {
   return (
     <Pagination
-            className='paginate'
-            count={totalPages}
-            page={page}
-            onChange={handlePagination}
-            style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}
-          />
-  );
+      className="paginate"
+      count={Math.ceil(39 / postsPerPage)}
+      page={page}
+      onChange={handlePagination}
+    />
+  )
 }
 
 // Add PropTypes validation for the props
 PaginationComponent.propTypes = {
-  totalPages: PropTypes.number.isRequired,
-  page: PropTypes.number.isRequired,
+  postsPerPage: PropTypes.number.isRequired,
+  page:PropTypes.number.isRequired,
   handlePagination: PropTypes.func.isRequired,
 }
 

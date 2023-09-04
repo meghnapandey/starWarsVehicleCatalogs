@@ -7,60 +7,52 @@ import FilterComponent from './FilterComponent'
 import PaginationComponent from './PaginationComponent'
 
 function Search() {
-  const [loading, setLoading] = useState(false)
-  const [vehicles, setVehicles] = useState([])
-  const [filteredResult, setFilteredResult] = useState([])
-  const [filterByClass, setFilterByClass] = useState("")
-  const [searchValue, setSearchValue] = useState("")
-  const [page, setPage] = useState(1)
-  const postsPerPage = 5
+  const [loading, setLoading] = useState(false);
+  const [vehicles, setVehicles] = useState([]);
+  const [filteredResult, setFilteredResult] = useState([]);
+  const [filterByClass, setFilterByClass] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [page, setPage] = useState(1);
+const postsPerPage = 10;
+
   useEffect(() => {
     fetchVehicles(page)
   }, [page])
 
-  const fetchVehicles = async (page) => {
-    setLoading(true)
-    try {
-      const response = await axios.get(`https://swapi.dev/api/vehicles?page=${page}`)
-      setVehicles(response.data.results)
-      setFilteredResult(response.data.results)
-      setLoading(false)
-    } catch (error) {
-      console.error("Error fetching vehicles:", error)
-      setLoading(false)
-    }
+const fetchVehicles = async (newPage) => {
+  setLoading(true)
+  try {
+    const response = await axios.get(`https://swapi.dev/api/vehicles?page=${newPage}`)
+    setVehicles(response.data.results)
+    handleSearch(searchValue, filterByClass, response.data.results)
+    setLoading(false)
+  } catch (error) {
+    console.error("Error fetching vehicles:", error)
+    setLoading(false)
   }
+}
 
-  const handleChange = (e) => {
-    const searchQuery = e.target.value.toLowerCase()
-    setSearchValue(searchQuery)
+const handleSearch = (query, filterBy, data) => {
+  const lowerCaseQuery = query.toLowerCase()
+  setFilterByClass(filterBy)
+  setSearchValue(lowerCaseQuery)
 
-    if (!searchQuery) {
-      setFilteredResult(vehicles)
-    } else {
-      const searchArr = vehicles.filter((item) => item.name.toLowerCase().includes(searchQuery))
-      setFilteredResult(searchArr)
-    }
+  if (!lowerCaseQuery && !filterBy) {
+    setFilteredResult(data)
+  } else {
+    const filteredVehicles = data.filter((item) =>
+      (!lowerCaseQuery || item.name.toLowerCase().includes(lowerCaseQuery)) &&
+      (!filterBy || item.vehicle_class.toLowerCase().includes(filterBy))
+    )
+    setFilteredResult(filteredVehicles)
   }
+}
 
-  const handleFilter = (e) => {
-    const filterQuery = e.target.value.toLowerCase()
-    setFilterByClass(filterQuery)
-
-    if (!filterQuery) {
-      setFilteredResult(vehicles)
-    } else {
-      const searchArr = vehicles.filter((item) => item.vehicle_class.toLowerCase().includes(filterQuery))
-      setFilteredResult(searchArr)
-    }
-  }
-
-  const handlePagination = (event, newPage) => {
-    fetchVehicles(page)
-    setPage(newPage)
-  }
-
-  const totalPages = Math.ceil(vehicles.length / postsPerPage)
+const handlePagination = (event, newPage) => {
+  setFilterByClass("")
+  setSearchValue("")
+  setPage(newPage)
+}
 
   return (
     <Container>
@@ -70,40 +62,49 @@ function Search() {
       <div className='input-header'>  
       <TextField
         sx={{ m: '2rem' }}
-        label="Search Vehicle"
+        label="Search Vehicle Name"
         variant="outlined"
         value={searchValue}
         fullWidth
-        onChange={(e) => handleChange(e)}
+        onChange={(e) => handleSearch(e.target.value, filterByClass, vehicles)}
         style={{ marginBottom: "16px" }}
       />
       <div style={{ paddingTop: '5px', marginBottom:'10px' }}>
       <FilterComponent filterByClass={filterByClass} 
-      handleFilter={handleFilter} />
+      handleFilter={(e) => handleSearch(searchValue, e.target.value.toLowerCase(), vehicles)} />
       </div>
       </div>
       {loading ? (
         <div className='input-header'><CircularProgress color="success" /></div>
       ) : (
         <>
-          <Grid container spacing={8} paddingTop="20px" row={{ xs: 3, sm: 3, md: 3 }}>
-          {filteredResult?.map((vehicle) => (
-            <Grid item xs={4} sm={4} md={4} lg={4} key={vehicle.name}>
-              <Card className="card-design" style={{backgroundColor: "beige"}}>
-                <CardContent>
-                  <Typography variant="h5">{vehicle.name}</Typography>
-                  <Typography className='label-styling'>Model: {vehicle.model}</Typography>
-                  <Typography className='label-styling'>Vehicle Class: {vehicle.vehicle_class}</Typography>
-                  <Typography className='label-styling'>Cost: {vehicle.cost_in_credits} credits</Typography>
-                </CardContent>
-                <PopupCard vehicle={vehicle} />
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-        <PaginationComponent totalPages={totalPages}
-        page={page} 
-        handlePagination={handlePagination} />
+          {filteredResult.length === 0 ? (
+            <Typography variant="h6" align="center" className='no-data-message'>
+              No match found.
+            </Typography>
+          ) : (
+            <>
+              <Grid container spacing={8} paddingTop="20px" row={{ xs: 3, sm: 3, md: 3 }}>
+                {filteredResult?.map((vehicle) => (
+                  <Grid item xs={4} sm={4} md={4} lg={4} key={vehicle.name}>
+                    <Card className="card-design" style={{ backgroundColor: "beige" }}>
+                      <CardContent>
+                        <Typography variant="h5">{vehicle.name}</Typography>
+                        <Typography className='label-styling'>Model: {vehicle.model}</Typography>
+                        <Typography className='label-styling'>Vehicle Class: {vehicle.vehicle_class}</Typography>
+                        <Typography className='label-styling'>Cost: {vehicle.cost_in_credits} credits</Typography>
+                        </CardContent>
+                          <PopupCard vehicle={vehicle} />
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+              <PaginationComponent page={page}
+                postsPerPage={postsPerPage}
+                handlePagination={handlePagination}
+              />
+          </>
+          )}
         </>
       )}
     </Container>
